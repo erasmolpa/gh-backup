@@ -1,8 +1,9 @@
 name: Backup GitHub Repository
 
 on:
-  schedule:
-    - cron: "0 0 * * *"  # Programa la copia de seguridad todos los días a la medianoche UTC
+  push:
+    branches:
+      - '*'
 
 jobs:
   backup:
