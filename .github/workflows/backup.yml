@@ -31,4 +31,4 @@ jobs:
         git config --local user.name ${{ secrets.GIT_ADMIN_USER_NAME}}
         git add *
         git commit -m "backup"
-        git push
+        git push -u origin main
