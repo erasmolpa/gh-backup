@@ -2,31 +2,22 @@ name: Backup GitHub Repository
 
 on:
   push:
-    branches:
-      - '*'
+    branches: [ $default-branch ]
 
 jobs:
-  backup:
+  build:
+  
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-
-      - name: Install github-backup
-        run: pip install github-backup
-
-      - name: Run Backup
-        run: |
-          python -m github_backup \
-            --token ${{ secrets.ADMIN_TOKEN }} \
-            --output-directory . \ 
-            --all \
-            --issues \
-            --issues-comments \
-            --labels
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install github-backup
+        ORGANIZATION=erasmolpaorg
+        github-backup $ORGANIZATION -P -t ${{ secrets.GITHUB_TOKEN }} -o . --all 
