@@ -27,6 +27,8 @@ jobs:
 
     - name: Commit changes
       run: |
+        git config --local user.email ${{ secrets.GIT_ADMIN_USER_EMAIL}}
+        git config --local user.name ${{ secrets.GIT_ADMIN_USER_NAME}}
         git add *
         git commit -m "backup"
         git push
