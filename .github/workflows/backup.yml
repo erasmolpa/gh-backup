@@ -23,7 +23,7 @@ jobs:
       - name: Run Backup
         run: |
           python -m github_backup \
-            --token ${{ secrets.GITHUB_TOKEN }} \
+            --token ${{ secrets.ADMIN_TOKEN }} \
             --output-directory . \ 
             --all \
             --issues \
