@@ -18,12 +18,12 @@ jobs:
         python-version: 3.11
 
     - name: install github-backup
-      run: pip install github-backup
+      run: pip install github-backup==0.43.1
 
     - name: execute github-backup
       env:
         ORGANIZATION: erasmolpaorg
-      run: github-backup $ORGANIZATION -P -i -t ${{ secrets.ADMIN_TOKEN }} -o . --all
+      run: github-backup $ORGANIZATION --private --incremental --token ${{ secrets.ADMIN_TOKEN }} -o . --all
 
     - name: Commit changes
       run: |
