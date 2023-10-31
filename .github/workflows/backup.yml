@@ -25,10 +25,10 @@ jobs:
         ORGANIZATION: erasmolpaorg
       run: github-backup $ORGANIZATION --private --incremental --token ${{ secrets.ADMIN_TOKEN }} -o . --all
 
-    - name: Commit changes
-      run: |
-        git config --local user.email ${{ secrets.GIT_ADMIN_USER_EMAIL}}
-        git config --local user.name ${{ secrets.GIT_ADMIN_USER_NAME}}
-        git add *
-        git commit -m "backup"
-        git push -u origin main
+#    - name: Commit changes
+#      run: |
+#        git config --local user.email ${{ secrets.GIT_ADMIN_USER_EMAIL}}
+#        git config --local user.name ${{ secrets.GIT_ADMIN_USER_NAME}}
+#        git add *
+#        git commit -m "backup"
+#        git push -u origin main
