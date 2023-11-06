@@ -97,13 +97,16 @@ def backup_organization_resources(org_name, access_token, output_dir):
     with open(os.path.join(org_folder, "organization.json"), "w") as org_file:
         org_file.write(json.dumps(org_data, indent=4))
 
-        if __name__ == "__main__":
-            parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
+if __name__ == "__main__":
+    
+        parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('--org_name', help='GitHub organization name')
         parser.add_argument('--access_token', help='GitHub access token')
         parser.add_argument('--output_dir', help='Output directory for backup')
 
         args = parser.parse_args()
+        variables = vars(args)
+        print(variables)
 
         org_name = args.org_name or os.environ.get("GITHUB_ORG")
         access_token = args.access_token or os.environ.get("GITHUB_ACCESS_TOKEN")
