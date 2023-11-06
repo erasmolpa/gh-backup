@@ -29,11 +29,3 @@ jobs:
         GITHUB_BACKUP_DIR: ${{ github.workspace }}
       run: python gh_backup.py $GITHUB_ORG $GITHUB_ACCESS_TOKEN $GITHUB_BACKUP_DIR
       working-directory: ${{ github.workspace }}
-      
-     - name: Commit changes
-       run: |
-         git config --local user.email ${{ secrets.GIT_ADMIN_USER_EMAIL}}
-         git config --local user.name ${{ secrets.GIT_ADMIN_USER_NAME}}
-         git add *
-         git commit -m "backup"
-         git push -u origin main
