@@ -1,3 +1,10 @@
+Example of running the python code :
+
+````
+python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XEc92aKqvJZA6kCRSXXXXXXXXXX' --output_dir './'
+
+``
+
 `` name: Backup Using Github-backup CLI library
 
 on:
