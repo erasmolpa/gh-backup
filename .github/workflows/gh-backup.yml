@@ -33,10 +33,11 @@ jobs:
     - name: Commit and Push
       env:
         GIT_USERNAME: ${{ secrets.ADMIN_USER_NAME }}
+        GIT_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
         GIT_TOKEN: ${{ secrets.ADMIN_TOKEN }}
       run: |
         git config --global user.name "${GIT_USERNAME}"
-        git config --global user.email "${GIT_USERNAME}@users.noreply.github.com"
+        git config --global user.email "${GIT_EMAIL}"
         git add .
         git commit -m "Auto commit from GitHub Action"
         git push
