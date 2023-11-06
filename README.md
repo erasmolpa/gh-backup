@@ -1,4 +1,9 @@
-Example of running the python code :
+#### Enable workflow permissions 
+In the repository setting, modify the actions settings, Workflow permissions for enabling read-write 
+
+https://github.com/erasmolpa/gh-backup/settings/actions
+
+#### Example of running the python code :
 
 ````
 python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XEc92aKqvJZA6kCRSXXXXXXXXXX' --output_dir './'
