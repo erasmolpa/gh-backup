@@ -1,0 +1,83 @@
+[
+    {
+        "color": "d73a4a",
+        "default": true,
+        "description": "Something isn't working",
+        "id": 6052310479,
+        "name": "bug",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7tzw",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/bug"
+    },
+    {
+        "color": "0075ca",
+        "default": true,
+        "description": "Improvements or additions to documentation",
+        "id": 6052310484,
+        "name": "documentation",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t1A",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/documentation"
+    },
+    {
+        "color": "cfd3d7",
+        "default": true,
+        "description": "This issue or pull request already exists",
+        "id": 6052310491,
+        "name": "duplicate",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t2w",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/duplicate"
+    },
+    {
+        "color": "a2eeef",
+        "default": true,
+        "description": "New feature or request",
+        "id": 6052310496,
+        "name": "enhancement",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t4A",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/enhancement"
+    },
+    {
+        "color": "7057ff",
+        "default": true,
+        "description": "Good for newcomers",
+        "id": 6052310501,
+        "name": "good first issue",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t5Q",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/good%20first%20issue"
+    },
+    {
+        "color": "008672",
+        "default": true,
+        "description": "Extra attention is needed",
+        "id": 6052310505,
+        "name": "help wanted",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t6Q",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/help%20wanted"
+    },
+    {
+        "color": "e4e669",
+        "default": true,
+        "description": "This doesn't seem right",
+        "id": 6052310508,
+        "name": "invalid",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t7A",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/invalid"
+    },
+    {
+        "color": "d876e3",
+        "default": true,
+        "description": "Further information is requested",
+        "id": 6052310510,
+        "name": "question",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t7g",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/question"
+    },
+    {
+        "color": "ffffff",
+        "default": true,
+        "description": "This will not be worked on",
+        "id": 6052310511,
+        "name": "wontfix",
+        "node_id": "LA_kwDOKc9_0M8AAAABaL7t7w",
+        "url": "https://api.github.com/repos/erasmolpaorg/repo-created-with-terraform/labels/wontfix"
+    }
+]
