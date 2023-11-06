@@ -1,9 +1,12 @@
 import os
 import json
 from github import Github
+import argparse
+
 
 def create_folder(path):
     os.makedirs(path, exist_ok=True)
+
 
 def backup_labels(repo, repo_folder):
     try:
@@ -13,6 +16,7 @@ def backup_labels(repo, repo_folder):
             labels_file.write(json.dumps(labels_data, indent=4))
     except Exception as e:
         print(f"Error backing up labels for the repository {repo.name}: {e}")
+
 
 def backup_issues(repo, repo_folder):
     try:
@@ -37,6 +41,7 @@ def backup_issues(repo, repo_folder):
     except Exception as e:
         print(f"Error backing up issues for the repository {repo.name}: {e}")
 
+
 def backup_repository(repo, org_folder):
     repo_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_folder)
@@ -55,9 +60,10 @@ def backup_repository(repo, org_folder):
     with open(os.path.join(repo_folder, "repository.json"), "w") as repo_file:
         repo_file.write(json.dumps(repo_data, indent=4))
 
+
 def backup_organization_resources(org_name, access_token, output_dir):
     g = Github(access_token)
-    
+
     try:
         org = g.get_organization(org_name)
     except Exception as e:
@@ -91,10 +97,19 @@ def backup_organization_resources(org_name, access_token, output_dir):
     with open(os.path.join(org_folder, "organization.json"), "w") as org_file:
         org_file.write(json.dumps(org_data, indent=4))
 
-if __name__ == "__main__":
-    
-    org_name = os.environ.get("GITHUB_ORG")
-    access_token = os.environ.get("GITHUB_ACCESS_TOKEN")
-    output_dir = os.environ.get("GITHUB_BACKUP_DIR")
+        if __name__ == "__main__":
+            parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
+        parser.add_argument('--org_name', help='GitHub organization name')
+        parser.add_argument('--access_token', help='GitHub access token')
+        parser.add_argument('--output_dir', help='Output directory for backup')
 
-    backup_organization_resources(org_name, access_token, output_dir)
+        args = parser.parse_args()
+
+        org_name = args.org_name or os.environ.get("GITHUB_ORG")
+        access_token = args.access_token or os.environ.get("GITHUB_ACCESS_TOKEN")
+        output_dir = args.output_dir or os.environ.get("GITHUB_BACKUP_DIR")
+
+        if org_name is None or access_token is None or output_dir is None:
+            raise ValueError("Please provide organization name, access token, and output directory.")
+ 
+        backup_organization_resources(org_name, access_token, output_dir)
