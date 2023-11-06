@@ -24,11 +24,15 @@ jobs:
       env:
         ORGANIZATION: erasmolpaorg
       run: github-backup $ORGANIZATION --private --incremental --token ${{ secrets.ADMIN_TOKEN }} -o . --all
-
-#    - name: Commit changes
-#      run: |
-#        git config --local user.email ${{ secrets.GIT_ADMIN_USER_EMAIL}}
-#        git config --local user.name ${{ secrets.GIT_ADMIN_USER_NAME}}
-#        git add *
-#        git commit -m "backup"
-#        git push -u origin main
+   
+    - name: Commit and Push
+      env:
+        GIT_USERNAME: ${{ secrets.ADMIN_USER_NAME }}
+        GIT_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
+        GIT_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+      run: |
+        git config user.name "erasmolpa"
+        git config user.email "erasmolpa@gmail.com"
+        git add *
+        git commit -m "Auto commit from GitHub Action"
+        git push
