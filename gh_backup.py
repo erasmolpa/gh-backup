@@ -61,7 +61,7 @@ def backup_repository(repo, org_folder):
         repo_file.write(json.dumps(repo_data, indent=4))
 
 
-def backup_organization_resources(org_name, access_token, output_dir):
+def backup_organization_resources(org_name, access_token, output_dir, repo_names=None):
     g = Github(access_token)
 
     try:
@@ -88,11 +88,13 @@ def backup_organization_resources(org_name, access_token, output_dir):
         return
 
     for repo in repositories:
-        try:
-            backup_repository(repo, org_folder)
-            org_data["repositories"].append(repo.name)
-        except Exception as e:
-            print(f"Error backing up the repository {repo.name}: {e}")
+        if repo_names is None or repo.name in repo_names:
+            try:
+                backup_repository(repo, org_folder)
+                org_data["repositories"].append(repo.name)
+            except Exception as e:
+                print(f"Error backing up the repository {repo.name}: {e}")
+
 
     with open(os.path.join(org_folder, "organization.json"), "w") as org_file:
         org_file.write(json.dumps(org_data, indent=4))
@@ -103,16 +105,17 @@ if __name__ == "__main__":
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
-
+        parser.add_argument('-r', '--repo_names', type=str, nargs='*', help='List of repository names to include in the backup')
+        
         args = parser.parse_args()
-        variables = vars(args)
-        print(variables)
+
 
         org_name = args.org_name or os.environ.get("GITHUB_ORG")
         access_token = args.access_token or os.environ.get("GITHUB_ACCESS_TOKEN")
         output_dir = args.output_dir or os.environ.get("GITHUB_BACKUP_DIR")
-
+        repo_names = args.repo_names
+        
         if org_name is None or access_token is None or output_dir is None:
             raise ValueError("Please provide organization name, access token, and output directory.")
  
-        backup_organization_resources(org_name, access_token, output_dir)
+        backup_organization_resources(org_name, access_token, output_dir, repo_names)
