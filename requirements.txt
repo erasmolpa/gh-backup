@@ -14,4 +14,3 @@ six==1.16.0
 tabulate
 virtualenv==20.24.5
 PyGithub
-git
