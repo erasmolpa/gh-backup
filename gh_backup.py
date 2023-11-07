@@ -1,10 +1,11 @@
 import os
 import json
 import argparse
-import git
-import datetime
 
-from github import Github
+import datetime
+from git import Repo
+from git import RemoteProgress
+from github import Github 
 
 
 def create_folder(path):
@@ -61,7 +62,7 @@ def backup_repository(repo, repo_folder, repo_clone):
         now = datetime.datetime.now()
         subfolder_name = f"{repo.name}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
         subfolder_path = os.path.join(repo_folder, subfolder_name)
-        git.Repo.clone_from(repo.clone_url, subfolder_path)
+        Repo.clone_from(repo.clone_url, subfolder_path,  no_single_branch=True)
     #if create_zip:
     #    print("TODO. Not implemented yet")  
         
