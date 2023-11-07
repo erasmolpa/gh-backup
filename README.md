@@ -14,6 +14,14 @@ python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_6ScAIqA834cuCh
 
 ``
 
+including the whole repo as part of the backup
+````
+python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'kubernetes' 'test' --repo_clone
+
+``
+
+
+
 `` name: Backup Using Github-backup CLI library
 
 on:
