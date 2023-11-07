@@ -2,7 +2,6 @@ import os
 import json
 import argparse
 import git
-#import zipfile
 import datetime
 
 from github import Github
@@ -63,7 +62,6 @@ def backup_repository(repo, repo_folder, repo_clone):
         subfolder_name = f"{repo.name}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
         subfolder_path = os.path.join(repo_folder, subfolder_name)
         git.Repo.clone_from(repo.clone_url, subfolder_path)
-           
     #if create_zip:
     #    print("TODO. Not implemented yet")  
         

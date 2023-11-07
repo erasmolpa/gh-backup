@@ -10,13 +10,13 @@ python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XXXX' --output
 backup only specific repos 
 
 ````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'kubernetes' 'test'
+python gh_backup.py --org_name 'erasmolpaorg' --access_token 'XXXXXXXXXXXXX' --output_dir './' --repo_names 'test' 'repo2'
 
 ``
 
 including the whole repo as part of the backup
 ````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'kubernetes' 'test' --repo_clone
+python gh_backup.py --org_name 'erasmolpaorg' --access_token 'XXXXXXXXXX' --output_dir './' --repo_names 'test' --repo_clone
 
 ``
 
