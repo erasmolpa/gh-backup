@@ -1,5 +1,14 @@
 Example of running the python code :
 
+backup all repos in the organization 
+
+````
+python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XEc92aKqvJZA6kCRSXXXXXXXXXX' --output_dir './'
+
+```
+
+backup only specific repos 
+
 ````
 python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XEc92aKqvJZA6kCRSXXXXXXXXXX' --output_dir './' --repo_names 'kubernetes,test'
 
