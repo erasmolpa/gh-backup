@@ -1,7 +1,7 @@
 Example of running the python code :
 
 ````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XEc92aKqvJZA6kCRSXXXXXXXXXX' --output_dir './'
+python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XEc92aKqvJZA6kCRSXXXXXXXXXX' --output_dir './' --repo_names 'kubernetes,test'
 
 ``
 

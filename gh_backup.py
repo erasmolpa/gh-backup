@@ -61,7 +61,7 @@ def backup_repository(repo, org_folder):
         repo_file.write(json.dumps(repo_data, indent=4))
 
 
-def backup_organization_resources(org_name, access_token, output_dirrepo_names=None):
+def backup_organization_resources(org_name, access_token, output_dir, repo_names=None):
     g = Github(access_token)
 
     try:
