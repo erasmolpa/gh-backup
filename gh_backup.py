@@ -7,17 +7,27 @@ from git import Repo
 from git import RemoteProgress
 from github import Github 
 
+global org_name
+global access_token
+global output_dir 
 
 def create_folder(path):
     os.makedirs(path, exist_ok=True)
 
-
+def save_data_to_json(data, output_file):
+    try:
+        with open(output_file, "w") as file:
+            json.dump(data, file, indent=4)
+    except Exception as e:
+        print(f"Error while saving data to JSON: {e}")
+        
 def backup_labels(repo, repo_folder):
     try:
         labels = repo.get_labels()
         labels_data = [{"name": label.name, "color": label.color} for label in labels]
-        with open(os.path.join(repo_folder, "labels.json"), "w") as labels_file:
-            labels_file.write(json.dumps(labels_data, indent=4))
+        output_file = os.path.join(repo_folder, "labels.json")
+        save_data_to_json(labels_data, output_file)
+        
     except Exception as e:
         print(f"Error backing up labels for the repository {repo.name}: {e}")
 
@@ -39,9 +49,10 @@ def backup_issues(repo, repo_folder):
                 "labels": [label.name for label in issue.get_labels()]
             }
             issues_data.append(issue_info)
-
-        with open(os.path.join(repo_folder, "issues.json"), "w") as issues_file:
-            issues_file.write(json.dumps(issues_data, indent=4))
+            
+        output_file = os.path.join(repo_folder, "issues.json")
+        save_data_to_json(issues_data, output_file)
+        
     except Exception as e:
         print(f"Error backing up issues for the repository {repo.name}: {e}")
 
@@ -55,16 +66,27 @@ def backup_repository(repo, repo_folder, repo_clone):
         "created_at": repo.created_at.isoformat(),
         "updated_at": repo.updated_at.isoformat()
     }
-    with open(os.path.join(repo_folder, "repository.json"), "w") as repo_file:
-        repo_file.write(json.dumps(repo_data, indent=4))
     
+    output_file = os.path.join(repo_folder, "repository.json")
+    save_data_to_json(repo_data, output_file)
+            
+    clone_repository(repo, repo_folder, repo_clone)
+
+    #if create_zip:
+    #    print("TODO. Not implemented yet")  
+        
+        
+def clone_repository(repo, repo_folder, repo_clone):
     if repo_clone:
         now = datetime.datetime.now()
         subfolder_name = f"{repo.name}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
         subfolder_path = os.path.join(repo_folder, subfolder_name)
-        Repo.clone_from(repo.clone_url, subfolder_path,  no_single_branch=True)
-    #if create_zip:
-    #    print("TODO. Not implemented yet")  
+        try:
+            Repo.clone_from(repo.clone_url, subfolder_path,  no_single_branch=True)
+        except Exception as e:
+            print(f"Error getting the list of repositories: {e}")
+        return
+        
         
 def backup_repository_resources(repo, org_folder, repo_clone):
     repo_folder = os.path.join(org_folder, repo.name)
