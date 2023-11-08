@@ -27,7 +27,7 @@ def save_data_to_json(data, output_file):
 def compress_directory(directory):
     current_date = datetime.datetime.now()
     date_str = current_date.strftime('%Y-%m-%d')
-    zip_file_name = f'repo_{directory}_{date_str}.zip'
+    zip_file_name = f'{directory}_{date_str}.zip'
     with zipfile.ZipFile(zip_file_name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for root, subdirs, files in os.walk(directory):
             for file in files:
@@ -101,17 +101,19 @@ def clone_repository(repo, repo_folder, repo_clone):
         return
         
         
-def backup_repository_resources(repo, org_folder, repo_clone):
+def backup_repository_resources(repo, org_folder, repo_clone, publish_backup):
     repo_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_folder)
 
     backup_labels(repo, repo_folder)
     backup_issues(repo, repo_folder)
     backup_repository(repo, repo_folder, repo_clone)
-    compress_directory(repo_folder)
+    if publish_backup: 
+        compress_directory(repo_folder)
+        #publish_backup()
 
 
-def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False):
+def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False, publish_backup=False):
     g = Github(access_token)
 
     try:
@@ -140,7 +142,7 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
     for repo in repositories:
         if repo_names is None or repo.name in repo_names:
             try:
-                backup_repository_resources(repo, org_folder, repo_clone)
+                backup_repository_resources(repo, org_folder, repo_clone, publish_backup)
                 org_data["repositories"].append(repo.name)
             except Exception as e:
                 print(f"Error backing up the repository {repo.name}: {e}")
@@ -157,6 +159,7 @@ if __name__ == "__main__":
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
         parser.add_argument('-r', '--repo_names', type=str, nargs='*', help='List of repository names to include in the backup')
         parser.add_argument('-rc', '--repo_clone', action='store_true', help='Including whole repo clone as part of the backup')
+        parser.add_argument('-pb', '--publish_backup', action='store_true', help='Publish backup as a zip file in remote storage')
         args = parser.parse_args()
 
 
@@ -165,8 +168,9 @@ if __name__ == "__main__":
         output_dir = args.output_dir or os.environ.get("GITHUB_BACKUP_DIR")
         repo_names = args.repo_names
         repo_clone = args.repo_clone
+        publish_backup = args.publish_backup
         
         if org_name is None or access_token is None or output_dir is None:
             raise ValueError("Please provide organization name, access token, and output directory.")
         
-        backup_organization_resources(org_name, access_token, output_dir, repo_names, repo_clone)
+        backup_organization_resources(org_name, access_token, output_dir, repo_names, repo_clone, publish_backup)
