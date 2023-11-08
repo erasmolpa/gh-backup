@@ -3,5 +3,7 @@
     "description": null,
     "website": null,
     "location": null,
-    "repositories": []
+    "repositories": [
+        "test"
+    ]
 }
