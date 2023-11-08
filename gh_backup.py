@@ -4,7 +4,7 @@ import argparse
 
 import datetime
 from git import Repo
-from git import RemoteProgress
+from git import GitCommandError
 from github import Github 
 
 global org_name
@@ -83,7 +83,7 @@ def clone_repository(repo, repo_folder, repo_clone):
         subfolder_path = os.path.join(repo_folder, subfolder_name)
         try:
             Repo.clone_from(repo.clone_url, subfolder_path,  no_single_branch=True)
-        except Exception as e:
+        except GitCommandError as e:
             print(f"Error getting the list of repositories: {e}")
         return
         
