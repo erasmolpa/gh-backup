@@ -21,7 +21,7 @@ python gh_backup.py --org_name 'erasmolpaorg' --access_token 'XXXXXXXXXXXXX' --o
 
 including the whole repo as part of the backup
 ````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token 'XXXXXXXXXX' --output_dir './' --repo_names 'test' --repo_clone
+python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'test' --repo_clone
 
 ``
 

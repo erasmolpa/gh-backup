@@ -9,6 +9,7 @@ from github import Github
 import zipfile
 import os
 import datetime
+import logging
 
 global org_name
 global access_token
@@ -114,10 +115,12 @@ def backup_repository_resources(repo, org_folder, repo_clone, publish_backup):
 
 
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False, publish_backup=False):
+    logging.info("INIT  backup_organization_resources Method")
     g = Github(access_token)
 
     try:
         org = g.get_organization(org_name)
+        logging.info("Getting organization details "+ org_name)
     except Exception as e:
         print(f"Error getting the organization: {e}")
         return
@@ -135,6 +138,7 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
 
     try:
         repositories = org.get_repos()
+        logging.info("Getting repositories for the organization " + str(repo_names))
     except Exception as e:
         print(f"Error getting the list of repositories: {e}")
         return
@@ -150,9 +154,14 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
 
     with open(os.path.join(org_folder, "organization.json"), "w") as org_file:
         org_file.write(json.dumps(org_data, indent=4))
+        
+    logging.info("END backup_organization_resources Method")
+
 
 if __name__ == "__main__":
-  
+    
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
