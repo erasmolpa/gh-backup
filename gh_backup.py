@@ -4,6 +4,8 @@ import argparse
 
 from git import Repo
 from git import GitCommandError
+from github import BadCredentialsException 
+from github import RateLimitExceededException 
 from github import Github 
 
 import zipfile
@@ -15,6 +17,25 @@ global org_name
 global access_token
 global output_dir 
 
+def github_auth(client_id=None, client_secret=None, access_token=None):
+    try:
+        if client_id and client_secret:
+            g = Github(client_id=client_id, client_secret=client_secret)
+        elif access_token:
+            g = Github(access_token)
+        else:
+            raise ValueError("No auth parameters provided.")
+
+        return g
+
+    except BadCredentialsException as e:
+        print("Github Invalid Credentials:", e)
+    except RateLimitExceededException as e:
+        print("Github Rate limit exceeded.", e)
+    except Exception as e:
+        print("Github Auth issues:", e)
+
+    return None
 def create_folder(path):
     os.makedirs(path, exist_ok=True)
 
@@ -116,7 +137,7 @@ def backup_repository_resources(repo, org_folder, repo_clone, publish_backup):
 
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")
-    g = Github(access_token)
+    g = github_auth(access_token=access_token)
 
     try:
         org = g.get_organization(org_name)
