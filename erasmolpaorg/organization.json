@@ -4,6 +4,6 @@
     "website": null,
     "location": null,
     "repositories": [
-        "test"
+        "repo-created-with-terraform"
     ]
 }
