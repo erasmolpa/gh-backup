@@ -21,10 +21,13 @@ python gh_backup.py --org_name 'erasmolpaorg' --access_token 'XXXXXXXXXXXXX' --o
 
 including the whole repo as part of the backup
 ````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'test' --repo_clone
+python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'test' --repo_clone
 
 ``
 
+including the whole repo as part of the backup
+````
+python gh_backup_project.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --project_ids '1'
 
 
 `` name: Backup Using Github-backup CLI library
