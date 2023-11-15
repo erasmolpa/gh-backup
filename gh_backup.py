@@ -16,7 +16,7 @@ import logging
 global org_name
 global access_token
 global output_dir 
-
+    
 def github_auth(client_id=None, client_secret=None, access_token=None):
     try:
         if client_id and client_secret:
@@ -94,7 +94,7 @@ def backup_issues(repo, repo_folder):
     except Exception as e:
         print(f"Error backing up issues for the repository {repo.name}: {e}")
 
-def backup_repository(repo, repo_folder, repo_clone):
+def backup_repository(repo, repo_folder, repo_clone,token):
     
     repo_data = {
         "name": repo.name,
@@ -108,28 +108,40 @@ def backup_repository(repo, repo_folder, repo_clone):
     output_file = os.path.join(repo_folder, "repository.json")
     save_data_to_json(repo_data, output_file)
             
-    clone_repository(repo, repo_folder, repo_clone)
+    clone_repository(repo, repo_folder, repo_clone,token )
         
         
-def clone_repository(repo, repo_folder, repo_clone):
+def clone_repository(repo, repo_folder, repo_clone, token):
+    logging.info("Cloning repository...")
+    
     if repo_clone:
         now = datetime.datetime.now()
         subfolder_name = f"{repo.name}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
         subfolder_path = os.path.join(repo_folder, subfolder_name)
+        
         try:
-            Repo.clone_from(repo.clone_url, subfolder_path,  no_single_branch=True)
+            # Use a personal access token for authentication
+            clone_url_with_token = f"https://{token}@github.com/{repo.full_name}.git"
+            repo = Repo.clone_from(clone_url_with_token, subfolder_path, no_single_branch=True)
+            
+            logging.info(f"Repository cloned successfully to {subfolder_path}")
+            
+            # Check if the repository folder contains files (optional)
+            if os.listdir(subfolder_path):
+                logging.info("Repository folder contains files.")
+            else:
+                logging.warning("Repository folder is empty.")
+            
         except GitCommandError as e:
-            print(f"Error getting the list of repositories: {e}")
-        return
-        
-        
-def backup_repository_resources(repo, org_folder, repo_clone, publish_backup):
+            logging.error(f"Error during repository cloning: {str(e)}")
+            
+def backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup):
     repo_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_folder)
 
     backup_labels(repo, repo_folder)
     backup_issues(repo, repo_folder)
-    backup_repository(repo, repo_folder, repo_clone)
+    backup_repository(repo, repo_folder, repo_clone, access_token)
     if publish_backup: 
         compress_directory(repo_folder)
         #publish_backup()
@@ -167,7 +179,7 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
     for repo in repositories:
         if repo_names is None or repo.name in repo_names:
             try:
-                backup_repository_resources(repo, org_folder, repo_clone, publish_backup)
+                backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup)
                 org_data["repositories"].append(repo.name)
             except Exception as e:
                 print(f"Error backing up the repository {repo.name}: {e}")
