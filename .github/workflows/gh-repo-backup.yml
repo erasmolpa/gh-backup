@@ -1,4 +1,4 @@
-name: Testing backup implementation
+name: Backup org repos
 
 on:
   push:
