@@ -17,3 +17,4 @@ PyGithub
 GitPython
 flake8==6.1.0
 pytest
+autopep8
