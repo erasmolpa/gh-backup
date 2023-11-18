@@ -1,12 +1,11 @@
 import unittest
-from unittest.mock import MagicMock, patch, mock_open
 import tempfile
 import shutil
 import os
 import json
 
 # Import the functions you want to test from your script
-from ..gh_backup import create_folder, backup_labels, backup_organization_resources
+from gh_repo_backup.backup import create_folder
 
 class TestBackupScript(unittest.TestCase):
     def setUp(self):
