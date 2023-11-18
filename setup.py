@@ -21,7 +21,7 @@ def open_file(fname):
 
 setup(
     name='example',
-    version='0.1dev0',
+    version='0.0.1',
     author='Author Name', 
     author_email='author_email@mail.com',
     packages=find_packages(),
