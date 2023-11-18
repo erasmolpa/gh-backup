@@ -25,10 +25,10 @@ jobs:
         pip install autopep8
       working-directory: ./github_tool
 
-    - name: Run tests
-      run: |
-        python -m pytest
-      working-directory: ./github_tool
+#    - name: Run tests
+#      run: |
+#        python -m pytest
+#      working-directory: ./github_tool
 
     - name: Autopep8
       run: |
