@@ -1,4 +1,4 @@
-name: Testing backup implementation
+name: Testing backup Projects
 
 on:
   push:
