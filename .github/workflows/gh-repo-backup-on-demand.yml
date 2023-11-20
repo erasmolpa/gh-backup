@@ -8,17 +8,19 @@ on:
         required: true
       access_token:
         description: 'GitHub access token'
-        required: true
+        required: false
       output_directory:
         description: 'Output directory for the backup'
-        required: true
+        required: false
       repo_names:
         description: 'List of repository names to include in the backup'
       repo_clone:
         description: 'Include whole repository clone as part of the backup'
+        required: true
         default: false
       publish_backup:
         description: 'Publish backup as a zip file in remote storage'
+        required: true
         default: false
 
 jobs:
