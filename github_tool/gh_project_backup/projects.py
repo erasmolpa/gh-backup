@@ -154,7 +154,7 @@ if __name__ == "__main__":
         
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
-        parser.add_argument('-r', '--project_ids', type=str, nargs='*', help='List of Github Project IDs names to include in the backup')
+        parser.add_argument('-p', '--project_ids', type=str, nargs='*', help='List of Github Project IDs names to include in the backup')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
         args = parser.parse_args()
