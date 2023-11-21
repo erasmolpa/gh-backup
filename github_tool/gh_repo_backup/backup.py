@@ -125,6 +125,7 @@ def clone_repository(repo, repo_backup_folder, repo_clone, token):
             os.makedirs(subfolder_path, exist_ok=True)
             
             # Use a personal access token for authentication
+            #TODO include bare=true or mirror=true ? 
             clone_url_with_token = f"https://{token}@github.com/{repo.full_name}.git"
             repo_temp = Repo.clone_from(clone_url_with_token, subfolder_path, no_single_branch=True)
             
