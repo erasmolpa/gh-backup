@@ -22,28 +22,39 @@ def restore_git_repository(repo_restored_name, local_repo_path, token):
         git_folder = find_git_folder(local_repo_path)
         if not git_folder:
             raise RuntimeError("Git repository folder is missing in the ZIP archive.")
-        
+
         repo = Repo(git_folder)
 
+        # Imprime el estado del repositorio antes del commit
+        logging.info("Repository status before commit:")
+        repo_status = repo.git.status()
+        logging.info(repo_status)
+
         if repo.is_dirty():
-            logging.error("Local repository has uncommitted changes. Commit or discard changes before restoring.")
-            return
+            logging.info("Staging changes...")
+            repo.git.add('--all')
+            repo.git.commit('-m', 'Auto commit before restoring')
 
-        logging.info("Staging changes...")
-        repo.git.add('--all')
+            current_date = datetime.today().strftime('%Y%m%d')
 
-        current_date = datetime.today().strftime('%Y%m%d')
-    
-        remote_url = f'https://{token}@github.com/{repo_restored_name}.git'
-        
-        logging.info(f"Creating remote 'github' with URL: {remote_url}")
-        remote = repo.create_remote('github', url=remote_url)
+            # Push the changes to the existing repository
+            remote_url = f'https://{token}@github.com/{repo_restored_name}.git'
+            logging.info(f"Pushing changes to remote repository with URL: {remote_url}")
+            repo.git.push('--set-upstream', remote_url, 'main')
 
-        logging.info("Repository restored successfully")
+            logging.info("Repository restored successfully")
+        else:
+            logging.info("No changes to commit.")
 
     except GitCommandError as e:
         logging.error(f"Error during repository restoration: {str(e)}")
 
+# Function to find the .git folder in the repository path
+def find_git_folder(repo_path):
+    git_folder = os.path.join(repo_path, '.git')
+    if os.path.exists(git_folder) and os.path.isdir(git_folder):
+        return git_folder
+    return None
 
 def create_local_path_from_backup_zip_file(zip_file_path):
     try:
