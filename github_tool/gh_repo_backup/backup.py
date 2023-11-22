@@ -1,6 +1,6 @@
 import json
 import argparse
-
+import shutil
 
 from git import Repo
 from git import GitCommandError
@@ -125,7 +125,6 @@ def clone_repository(repo, repo_backup_folder, repo_clone, token):
             os.makedirs(subfolder_path, exist_ok=True)
             
             # Use a personal access token for authentication
-            #TODO include bare=true or mirror=true ? 
             clone_url_with_token = f"https://{token}@github.com/{repo.full_name}.git"
             repo_temp = Repo.clone_from(clone_url_with_token, subfolder_path, no_single_branch=True)
             
@@ -138,10 +137,12 @@ def clone_repository(repo, repo_backup_folder, repo_clone, token):
             else:
                 logging.warning("Repository folder is empty.")
                 
-            #shutil.rmtree(subfolder_path)
-            
         except GitCommandError as e:
             logging.error(f"Error during repository cloning: {str(e)}")
+            
+        finally:
+            if os.path.exists(subfolder_path):
+               shutil.rmtree(subfolder_path)
             
 def backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup):
     repo_backup_folder = os.path.join(org_folder, repo.name)
@@ -155,7 +156,6 @@ def backup_repository_resources(repo, org_folder, repo_clone, access_token, publ
     if publish_backup: 
         compress_directory(repo_backup_folder)
         #publish_backup()
-
 
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")

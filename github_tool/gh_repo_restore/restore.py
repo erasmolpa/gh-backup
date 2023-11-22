@@ -151,7 +151,7 @@ def restore_organization_resources(org_name, access_token, backup_zip_file_path)
 
                 restore_labels(repo, labels_data)
                 restore_issues(repo, issues_data)
-                restore_repository(repo, repo_data)
+                #restore_repository(repo, repo_data)
 
             finally:
                 if os.path.exists(backup_path):
