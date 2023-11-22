@@ -26,7 +26,7 @@ jobs:
       env:
         GITHUB_ORG: "erasmolpaorg"
         GITHUB_ACCESS_TOKEN: ${{ secrets.ADMIN_TOKEN }}
-        GITHUB_BACKUP_DIR: ${{ github.workspace }}
+        GITHUB_BACKUP_DIR:  ${{ github.workspace }}/backups
         GITHUB_REPOS: "test"
       run: python github_tool/gh_repo_backup/backup.py --org_name $GITHUB_ORG --access_token $GITHUB_ACCESS_TOKEN --output_dir $GITHUB_BACKUP_DIR --repo_names $GITHUB_REPOS --repo_clone --publish_back
       working-directory: ${{ github.workspace }}
