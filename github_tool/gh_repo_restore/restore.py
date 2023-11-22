@@ -10,6 +10,41 @@ from git import Repo, GitCommandError
 from datetime import datetime
 from github import Github
 
+def restore_git_repository(repo_restored_name, local_repo_path, token):
+    logging.info(f"Restoring Repo with name '{repo_restored_name}' in the following path '{local_repo_path}'...")
+    try:
+        logging.info(f"Parameters: repo_restored_name={repo_restored_name}, local_repo_path={local_repo_path}, token={token}")
+
+        if not os.path.exists(local_repo_path):
+            logging.error(f"Local repository folder does not exist: {local_repo_path}")
+            return
+
+        git_folder = find_git_folder(local_repo_path)
+        if not git_folder:
+            raise RuntimeError("Git repository folder is missing in the ZIP archive.")
+        
+        repo = Repo(git_folder)
+
+        if repo.is_dirty():
+            logging.error("Local repository has uncommitted changes. Commit or discard changes before restoring.")
+            return
+
+        logging.info("Staging changes...")
+        repo.git.add('--all')
+
+        current_date = datetime.today().strftime('%Y%m%d')
+    
+        remote_url = f'https://{token}@github.com/{repo_restored_name}.git'
+        
+        logging.info(f"Creating remote 'github' with URL: {remote_url}")
+        remote = repo.create_remote('github', url=remote_url)
+
+        logging.info("Repository restored successfully")
+
+    except GitCommandError as e:
+        logging.error(f"Error during repository restoration: {str(e)}")
+
+
 def create_local_path_from_backup_zip_file(zip_file_path):
     try:
         temp_dir = 'temp_restore'
@@ -39,39 +74,6 @@ def find_git_folder(base_path):
         if '.git' in dirs:
             return os.path.join(root, '.git')
     return None
-
-def restore_git_repository(repo_restored_name, local_repo_path, token):
-    logging.info(f"Restoring Repo with name '{repo_restored_name}' in the following path '{local_repo_path}'...")
-    try:
-        logging.info(f"Parameters: repo_restored_name={repo_restored_name}, local_repo_path={local_repo_path}, token={token}")
-
-        if not os.path.exists(local_repo_path):
-            logging.error(f"Local repository folder does not exist: {local_repo_path}")
-            return
-
-        git_folder = find_git_folder(local_repo_path)
-        if not git_folder:
-            raise RuntimeError("Git repository folder is missing in the ZIP archive.")
-        
-        repo = Repo(git_folder)
-
-        if repo.is_dirty():
-            logging.error("Local repository has uncommitted changes. Commit or discard changes before restoring.")
-            return
-
-        logging.info("Staging changes...")
-        repo.git.add('--all')
-
-        current_date = datetime.today().strftime('%Y%m%d')
-        remote_url = f'https://{token}@github.com/repo_restored_{current_date}_{repo_restored_name}.git'
-        
-        logging.info(f"Creating remote 'github' with URL: {remote_url}")
-        remote = repo.create_remote('github', url=remote_url)
-
-        logging.info("Repository restored successfully")
-
-    except GitCommandError as e:
-        logging.error(f"Error during repository restoration: {str(e)}")
         
 def restore_labels(repo, labels_data):
     for label_info in labels_data:
@@ -122,6 +124,16 @@ def restore_organization_resources(org_name, access_token, backup_zip_file_path)
                 current_date = datetime.today().strftime('%Y%m%d')
                 repo_restored_name = f"repo_restored_{current_date}_{repo_name}"
 
+                org.create_repo(
+                        repo_restored_name,
+                        allow_rebase_merge=True,
+                        auto_init=False,
+                        description=repo_data['description'],
+                        has_issues=True,
+                        has_projects=False,
+                        has_wiki=False,
+                        private=True,
+                    )
                 restore_git_repository(repo_restored_name, backup_path, access_token)
 
                 repo = org.get_repo(repo_restored_name)
