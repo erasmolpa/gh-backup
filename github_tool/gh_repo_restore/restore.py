@@ -10,10 +10,14 @@ from git import Repo, GitCommandError
 from datetime import datetime
 from github import Github
 
+global org_name
+global access_token 
+global backup_zip_path
+
+
 def restore_git_repository(repo_restored_name, local_repo_path, token):
-    logging.info(f"Restoring Repo with name '{repo_restored_name}' in the following path '{local_repo_path}'...")
     try:
-        logging.info(f"Parameters: repo_restored_name={repo_restored_name}, local_repo_path={local_repo_path}, token={token}")
+        logging.info(f"Parameters: repo_restored_name={repo_restored_name}, local_repo_path={local_repo_path}")
 
         if not os.path.exists(local_repo_path):
             logging.error(f"Local repository folder does not exist: {local_repo_path}")
@@ -23,38 +27,45 @@ def restore_git_repository(repo_restored_name, local_repo_path, token):
         if not git_folder:
             raise RuntimeError("Git repository folder is missing in the ZIP archive.")
 
-        repo = Repo(git_folder)
+        # Create a new repository in the specified directory
+        repo = Repo.init(local_repo_path)
 
-        # Imprime el estado del repositorio antes del commit
-        logging.info("Repository status before commit:")
-        repo_status = repo.git.status()
-        logging.info(repo_status)
+        # Add all files from the existing Git repository to the new repository
+        for item in os.listdir(git_folder):
+            item_path = os.path.join(git_folder, item)
+            if os.path.isfile(item_path):
+                shutil.copy2(item_path, local_repo_path)
 
-        if repo.is_dirty():
-            logging.info("Staging changes...")
-            repo.git.add('--all')
-            repo.git.commit('-m', 'Auto commit before restoring')
+        # Add and commit the changes
+        repo.git.add('--all')
+        repo.git.commit('-m', 'Initial commit before restoring')
 
-            current_date = datetime.today().strftime('%Y%m%d')
+        # Set up the remote
+        remote_url = f'https://{token}@github.com/{org_name}/{repo_restored_name}.git'
+        origin = repo.create_remote('origin', remote_url)
 
-            # Push the changes to the existing repository
-            remote_url = f'https://{token}@github.com/{repo_restored_name}.git'
-            logging.info(f"Pushing changes to remote repository with URL: {remote_url}")
-            repo.git.push('--set-upstream', remote_url, 'main')
+        # Create and push the 'main' branch to the remote repository
+        repo.create_head('main')
+        origin.push('main')
 
-            logging.info("Repository restored successfully")
-        else:
-            logging.info("No changes to commit.")
+        logging.info("Repository restored successfully")
 
     except GitCommandError as e:
         logging.error(f"Error during repository restoration: {str(e)}")
+        logging.error(f"Git command output: {e.stderr}")
 
-# Function to find the .git folder in the repository path
+    finally:
+        logging.info("Removing temporary directory...")
+        shutil.rmtree(local_repo_path)
+
 def find_git_folder(repo_path):
     git_folder = os.path.join(repo_path, '.git')
     if os.path.exists(git_folder) and os.path.isdir(git_folder):
+        logging.info(f"Git folder found: {git_folder}")
         return git_folder
-    return None
+    else:
+      logging.warning("Local repository NOT FOUND!") 
+      return None
 
 def create_local_path_from_backup_zip_file(zip_file_path):
     try:
@@ -87,22 +98,41 @@ def find_git_folder(base_path):
     return None
         
 def restore_labels(repo, labels_data):
+    existing_labels = {label.name.lower(): label for label in repo.get_labels()}
+    
     for label_info in labels_data:
+        label_name = label_info['name'].lower()
+        
+        if label_name in existing_labels:
+            print(f"Label {label_info['name']} already exists, skipping...")
+            continue
+
         try:
             repo.create_label(label_info['name'], label_info['color'])
+            print(f"Label {label_info['name']} created successfully.")
         except Exception as e:
             print(f"Error creating label {label_info['name']}: {e}")
-
+            
 def restore_issues(repo, issues_data):
+    existing_issues = {issue.title.lower(): issue for issue in repo.get_issues()}
+
     for issue_info in issues_data:
+        issue_title = issue_info['title'].lower()
+
+        if issue_title in existing_issues:
+            print(f"Issue {issue_info['title']} already exists, skipping...")
+            continue
+
         try:
             repo.create_issue(
                 title=issue_info['title'],
                 body=issue_info['body'],
                 labels=issue_info['labels']
             )
+            print(f"Issue {issue_info['title']} created successfully.")
         except Exception as e:
             print(f"Error creating issue {issue_info['title']}: {e}")
+
 
 def restore_repository(repo, repo_data):
     try:
@@ -133,8 +163,8 @@ def restore_organization_resources(org_name, access_token, backup_zip_file_path)
 
                 repo_name = repo_data['name']
                 current_date = datetime.today().strftime('%Y%m%d')
-                repo_restored_name = f"repo_restored_{current_date}_{repo_name}"
-
+                #repo_restored_name = f"repo_restored_{current_date}_{repo_name}"
+                repo_restored_name = f"{repo_name}"
                 org.create_repo(
                         repo_restored_name,
                         allow_rebase_merge=True,
@@ -145,17 +175,16 @@ def restore_organization_resources(org_name, access_token, backup_zip_file_path)
                         has_wiki=False,
                         private=True,
                     )
-                restore_git_repository(repo_restored_name, backup_path, access_token)
-
+                
                 repo = org.get_repo(repo_restored_name)
-
                 restore_labels(repo, labels_data)
                 restore_issues(repo, issues_data)
-                #restore_repository(repo, repo_data)
-
+                restore_git_repository(repo_restored_name, backup_path, access_token)
+                
             finally:
                 if os.path.exists(backup_path):
-                    shutil.rmtree(backup_path)
+                     logging.info("removing.....")
+                   # shutil.rmtree(backup_path)
 
         else:
             raise RuntimeError("Error creating local path from backup ZIP file.")
