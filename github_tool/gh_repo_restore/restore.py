@@ -104,15 +104,20 @@ def restore_labels(repo, labels_data):
         label_name = label_info['name'].lower()
         
         if label_name in existing_labels:
-            print(f"Label {label_info['name']} already exists, skipping...")
+            logging.info(f"Label {label_info['name']} already exists, skipping...")
             continue
 
         try:
             repo.create_label(label_info['name'], label_info['color'])
-            print(f"Label {label_info['name']} created successfully.")
+            logging.info(f"Label {label_info['name']} created successfully.")
         except Exception as e:
-            print(f"Error creating label {label_info['name']}: {e}")
-            
+            error_message = str(e)
+            if "Validation Failed" in error_message and "already_exists" in error_message:
+                logging.warning(f"The label '{label_info['name']}' already exists, skipping creation.")
+            else:
+                logging.error(f"Error creating label {label_info['name']}: {e}")
+
+
 def restore_issues(repo, issues_data):
     existing_issues = {issue.title.lower(): issue for issue in repo.get_issues()}
 
