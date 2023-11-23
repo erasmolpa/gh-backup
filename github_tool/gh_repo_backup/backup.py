@@ -1,6 +1,6 @@
 import json
 import argparse
-
+import shutil
 
 from git import Repo
 from git import GitCommandError
@@ -124,24 +124,23 @@ def clone_repository(repo, repo_backup_folder, repo_clone, token):
         try:
             os.makedirs(subfolder_path, exist_ok=True)
             
-            # Use a personal access token for authentication
             clone_url_with_token = f"https://{token}@github.com/{repo.full_name}.git"
             repo_temp = Repo.clone_from(clone_url_with_token, subfolder_path, no_single_branch=True)
             
             repo_temp.git.archive("--format", "zip", "--output", f"{subfolder_path}.zip", "HEAD")
             logging.info(f"Repository cloned successfully to {subfolder_path}")
             
-            # Check if the repository folder contains files (optional)
             if os.listdir(subfolder_path):
                 logging.info("Repository folder contains files.")
             else:
                 logging.warning("Repository folder is empty.")
                 
-            #shutil.rmtree(subfolder_path)
+            return subfolder_path 
             
         except GitCommandError as e:
             logging.error(f"Error during repository cloning: {str(e)}")
-            
+            return None 
+      
 def backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup):
     repo_backup_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_backup_folder)
@@ -150,11 +149,13 @@ def backup_repository_resources(repo, org_folder, repo_clone, access_token, publ
     backup_issues(repo, repo_backup_folder)
     backup_repository(repo, repo_backup_folder)
     if repo_clone:
-        clone_repository(repo, repo_backup_folder, repo_clone,access_token )
-    if publish_backup: 
+        cloned_folder = clone_repository(repo, repo_backup_folder, repo_clone,access_token )
         compress_directory(repo_backup_folder)
-        #publish_backup()
-
+        shutil.rmtree(os.path.join(repo_backup_folder, f"repo_cloned_{repo.name}"))
+        if os.path.exists(cloned_folder):
+            shutil.rmtree(cloned_folder)
+    if publish_backup: 
+       logging.info("TODO. Need to implement publish_backup")         
 
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")

@@ -1,0 +1,56 @@
+name: Backup GitHub Organization
+
+on:
+  workflow_dispatch:
+    inputs:
+      organization_name:
+        description: 'GitHub organization name'
+        required: true
+      access_token:
+        description: 'GitHub access token'
+        required: false
+      output_directory:
+        description: 'Output directory for the backup'
+        required: false
+      repo_names:
+        description: 'List of repository names to include in the backup'
+      repo_clone:
+        description: 'Include whole repository clone as part of the backup'
+        required: true
+        default: false
+      publish_backup:
+        description: 'Publish backup as a zip file in remote storage'
+        required: true
+        default: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r github_tool/requirements.txt
+      working-directory: ${{ github.workspace }}
+    - name: Run backup script
+      env:
+        GITHUB_ACCESS_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_BACKUP_DIR: ${{ github.workspace }}
+      run: |
+        python github_tool/gh_repo_backup/backup.py
+          -o "${{ github.event.inputs.organization_name }}"
+          -t "$GITHUB_ACCESS_TOKEN"
+          -d "$GITHUB_BACKUP_DIR"
+          -r "${{ github.event.inputs.repo_names }}"
+          ${{ if github.event.inputs.repo_clone }} -rc ${{ endif }}
+          ${{ if github.event.inputs.publish_backup }} -pb ${{ endif }}
+      working-directory: ${{ github.workspace }}

@@ -1,38 +1,41 @@
-#### Enable workflow permissions 
-In the repository setting, modify the actions settings, Workflow permissions for enabling read-write 
+# GitHub Backup and Restore Tool
 
-https://github.com/erasmolpa/gh-backup/settings/actions
+This project provides a command-line tool (CLI) written in Python to perform backups of GitHub repositories and resources, as well as to restore these backups.
 
-#### Example of running the python code :
+## Features
 
-backup all repos in the organization 
+- **Repository Backup:** Backs up repositories from a GitHub organization.
+- **Resource Backup:** Saves additional information such as labels, issues, and repository details.
+- **Backup Restoration:** Allows restoring repositories from generated backups.
 
-````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token 'ghp_XXXX' --output_dir './'
+## Requirements
 
-```
+- Python 3.x
+- Additional dependencies (see `requirements.txt`)
 
-backup only specific repos 
+## Installation
 
-````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token 'XXXXXXXXXXXXX' --output_dir './' --repo_names 'test' 'repo2'
+1. Clone this repository to your local machine:
 
-``
+    ```bash
+    git clone https://github.com/your_username/gh-backup.git
+    ```
 
-including the whole repo as part of the backup
-````
-python gh_backup.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --repo_names 'test' --repo_clone
+2. Create and activate a virtual environment:
 
-``
+    ```bash
+    cd github_tool
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
 
-including the whole repo as part of the backup
-````
-python gh_backup_project.py --org_name 'erasmolpaorg' --access_token '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' --output_dir './' --project_ids '1'
+3. Install dependencies:
 
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Restoring repo 
+## Usage
 
-````
-python gh_restore.py  --org_name 'erasmolpaorg' --access_token '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' --backup_folder './erasmolpaorg/test'
-
-
+```bash
+python gh_repo_backup/backup.py -o ORG_NAME -t ACCESS_TOKEN -d OUTPUT_DIR -r REPO_NAMES -rc -pb

@@ -109,6 +109,7 @@ def backup_github_project(organization_name, project_ids, access_token, output_d
         # Find the project with the specified ID
         project = None
         for org_project in org_projects:
+            logging.info("Project!!!!!!!!!!!!!!!" + str(org_project))
             if org_project.id == int(project_id):
                 project = org_project
                 break
@@ -154,7 +155,7 @@ if __name__ == "__main__":
         
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
-        parser.add_argument('-r', '--project_ids', type=str, nargs='*', help='List of Github Project IDs names to include in the backup')
+        parser.add_argument('-p', '--project_ids', type=str, nargs='*', help='List of Github Project IDs names to include in the backup')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
         args = parser.parse_args()
