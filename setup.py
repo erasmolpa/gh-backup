@@ -20,7 +20,7 @@ def open_file(fname):
 
 
 setup(
-    name='example',
+    name='github_tool',
     version='0.0.1',
     author='Author Name', 
     author_email='author_email@mail.com',
