@@ -8,8 +8,8 @@ import datetime
 import logging
 import gc
 
-from git import Repo
-from git import GitCommandError
+from git    import Repo
+from git    import GitCommandError
 from github import BadCredentialsException 
 from github import RateLimitExceededException 
 from github import Github 
@@ -17,8 +17,8 @@ from github import Github
 global org_name
 global access_token
 global output_dir 
-global clone_repository_dir
-    
+global remove_local_repo_dir
+  
 def github_auth(client_id=None, client_secret=None, access_token=None):
     try:
         if client_id and client_secret:
@@ -171,21 +171,26 @@ def rmtree(path):
     return shutil.rmtree(path, False, onerror)
          
 def backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup):
+    #TODO Fixme . This should be a env variable instead
+    remove_local_repo_dir = False
     repo_backup_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_backup_folder)
 
     backup_labels(repo, repo_backup_folder)
     backup_issues(repo, repo_backup_folder)
     backup_repository(repo, repo_backup_folder)
+    
     if repo_clone:
         cloned_folder = clone_repository(repo, repo_backup_folder, access_token )
         compress_directory(repo_backup_folder)
         time.sleep(4)
+
+    if  os.path.exists(cloned_folder) and remove_local_repo_dir:
         try:
             rmtree(cloned_folder)
         except OSError as e:
             print("Error: %s - %s." % (e.filename, e.strerror))
-          
+               
     if publish_backup: 
        logging.info("TODO. Need to implement publish_backup")         
 
@@ -236,7 +241,7 @@ if __name__ == "__main__":
     
         ##  TODO Logging based on configuration 
         ##  logging.basicConfig(filename='backup.log', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
