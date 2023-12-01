@@ -1,6 +1,12 @@
 import json
 import argparse
 import shutil
+import time
+import zipfile
+import os
+import datetime
+import logging
+import gc
 
 from git import Repo
 from git import GitCommandError
@@ -8,14 +14,10 @@ from github import BadCredentialsException
 from github import RateLimitExceededException 
 from github import Github 
 
-import zipfile
-import os
-import datetime
-import logging
-
 global org_name
 global access_token
 global output_dir 
+global clone_repository_dir
     
 def github_auth(client_id=None, client_secret=None, access_token=None):
     try:
@@ -25,7 +27,6 @@ def github_auth(client_id=None, client_secret=None, access_token=None):
             g = Github(access_token)
         else:
             raise ValueError("No auth parameters provided.")
-
         return g
 
     except BadCredentialsException as e:
@@ -47,17 +48,27 @@ def save_data_to_json(data, output_file):
         print(f"Error while saving data to JSON: {e}")
 
 def compress_directory(directory):
-    current_date = datetime.datetime.now()
-    date_str = current_date.strftime('%Y-%m-%d')
-    zip_file_name = f'{directory}_{date_str}.zip'
-    with zipfile.ZipFile(zip_file_name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for root, subdirs, files in os.walk(directory):
-            for file in files:
-                full_path = os.path.join(root, file)
-                relative_path = os.path.relpath(full_path, directory)
-                zip_file.write(full_path, relative_path)
+    
+    try:
+        current_date = datetime.datetime.now()
+        date_str = current_date.strftime('%Y-%m-%d')
+        zip_file_name = f'{directory}_{date_str}.zip'
+        
+        with zipfile.ZipFile(zip_file_name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for root, subdirs, files in os.walk(directory):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    relative_path = os.path.relpath(full_path, directory)
+                    zip_file.write(full_path, relative_path)
 
-    print(f'ZIP file created: {zip_file_name}')
+        print(f'ZIP file created: {zip_file_name}')
+        logging.info(f'ZIP file created: {zip_file_name}')
+
+    except Exception as e:
+        error_message = f'Error during compression: {str(e)}'
+        print(error_message)
+        logging.error(error_message)
+        raise
     
 def backup_labels(repo, repo_folder):
 
@@ -112,35 +123,53 @@ def backup_repository(repo, repo_folder):
     save_data_to_json(repo_data, output_file)
         
         
-def clone_repository(repo, repo_backup_folder, repo_clone, token):
+def clone_repository(repo, repo_backup_folder, token):
     logging.info("Cloning repository...")
     logging.info(f"Parameters: repo_folder={repo_backup_folder}, repo_clone={repo_clone}, repo_name={repo.name}")
-
-    if repo_clone:
-        now = datetime.datetime.now()
-        subfolder_name = f"repo_cloned_{repo.name}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
-        subfolder_path = os.path.join(repo_backup_folder, subfolder_name)
+    
+    now = datetime.datetime.now()
+    subfolder_name = f"repo_cloned_{repo.name}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
+    subfolder_path = os.path.join(repo_backup_folder, subfolder_name)
         
-        try:
-            os.makedirs(subfolder_path, exist_ok=True)
+    try:
+        os.makedirs(subfolder_path, exist_ok=True)
             
-            clone_url_with_token = f"https://{token}@github.com/{repo.full_name}.git"
-            repo_temp = Repo.clone_from(clone_url_with_token, subfolder_path, no_single_branch=True)
+        clone_url_with_token = f"https://{token}@github.com/{repo.full_name}.git"
+        repo_temp = Repo.clone_from(clone_url_with_token, subfolder_path, no_single_branch=True)
             
-            repo_temp.git.archive("--format", "zip", "--output", f"{subfolder_path}.zip", "HEAD")
-            logging.info(f"Repository cloned successfully to {subfolder_path}")
+        #TODO Should we include and create the Zip at this level ? this could improve in performance the process ?
+        #repo_temp.git.archive("--format", "zip", "--output", f"{subfolder_path}.zip", "HEAD")
+        logging.info(f"Repository cloned successfully to {subfolder_path}")
             
-            if os.listdir(subfolder_path):
-                logging.info("Repository folder contains files.")
-            else:
-                logging.warning("Repository folder is empty.")
+        if os.listdir(subfolder_path):
+            logging.info("Repository folder contains files.")
+        else:
+            logging.warning("Repository folder is empty.")
                 
-            return subfolder_path 
+        gc.collect()
+        repo_temp.git.clear_cache()
+        return subfolder_path 
             
-        except GitCommandError as e:
-            logging.error(f"Error during repository cloning: {str(e)}")
-            return None 
-      
+    except GitCommandError as e:
+        logging.error(f"Error during repository cloning: {str(e)}")
+        return None 
+        
+def rmtree(path):
+    """Remove the given recursively.
+
+    :note: we use shutil rmtree but adjust its behaviour to see whether files that
+        couldn't be deleted are read-only. Windows will not remove them in that case"""
+
+    def onerror(func, path, exc_info):
+        # Is the error an access error ?
+        os.chmod(path, stat.S_IWUSR)
+        print('dfsffdss')
+        try:
+            func(path)  # Will scream if still not possible to delete.
+        except Exception as ex:
+            raise
+    return shutil.rmtree(path, False, onerror)
+         
 def backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup):
     repo_backup_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_backup_folder)
@@ -149,11 +178,14 @@ def backup_repository_resources(repo, org_folder, repo_clone, access_token, publ
     backup_issues(repo, repo_backup_folder)
     backup_repository(repo, repo_backup_folder)
     if repo_clone:
-        cloned_folder = clone_repository(repo, repo_backup_folder, repo_clone,access_token )
+        cloned_folder = clone_repository(repo, repo_backup_folder, access_token )
         compress_directory(repo_backup_folder)
-        shutil.rmtree(os.path.join(repo_backup_folder, f"repo_cloned_{repo.name}"))
-        if os.path.exists(cloned_folder):
-            shutil.rmtree(cloned_folder)
+        time.sleep(4)
+        try:
+            rmtree(cloned_folder)
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
+          
     if publish_backup: 
        logging.info("TODO. Need to implement publish_backup")         
 
@@ -194,7 +226,6 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
             except Exception as e:
                 print(f"Error backing up the repository {repo.name}: {e}")
 
-
     with open(os.path.join(org_folder, "organization.json"), "w") as org_file:
         org_file.write(json.dumps(org_data, indent=4))
         
@@ -203,8 +234,9 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
 
 if __name__ == "__main__":
     
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        
+        ##  TODO Logging based on configuration 
+        ##  logging.basicConfig(filename='backup.log', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
