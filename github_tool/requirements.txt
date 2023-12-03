@@ -18,3 +18,5 @@ GitPython
 flake8==6.1.0
 pytest
 autopep8
+python-dotenv
+azure-storage-blob
