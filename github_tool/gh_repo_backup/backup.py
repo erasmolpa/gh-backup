@@ -47,6 +47,7 @@ def save_data_to_json(data, output_file):
     except Exception as e:
         print(f"Error while saving data to JSON: {e}")
 
+
 def compress_directory(directory):
     
     try:
@@ -170,14 +171,18 @@ def rmtree(path):
             raise
     return shutil.rmtree(path, False, onerror)
          
-def backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup):
+def backup_repository_resources(repo, org_folder, repo_clone, include_labels, include_issues, access_token, publish_backup):
     #TODO Fixme . This should be a env variable instead
     remove_local_repo_dir = False
     repo_backup_folder = os.path.join(org_folder, repo.name)
     create_folder(repo_backup_folder)
 
-    backup_labels(repo, repo_backup_folder)
-    backup_issues(repo, repo_backup_folder)
+    if include_labels:
+        backup_labels(repo, repo_backup_folder)
+        
+    if include_issues:
+        backup_issues(repo, repo_backup_folder)
+        
     backup_repository(repo, repo_backup_folder)
     
     if repo_clone:
@@ -194,7 +199,7 @@ def backup_repository_resources(repo, org_folder, repo_clone, access_token, publ
     if publish_backup: 
        logging.info("TODO. Need to implement publish_backup")         
 
-def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, repo_clone=False, publish_backup=False):
+def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, include_labels=True, include_issues=True, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")
     g = github_auth(access_token=access_token)
 
@@ -226,7 +231,7 @@ def backup_organization_resources(org_name, access_token, output_dir, repo_names
     for repo in repositories:
         if repo_names is None or repo.name in repo_names:
             try:
-                backup_repository_resources(repo, org_folder, repo_clone, access_token, publish_backup)
+                backup_repository_resources(repo, org_folder, repo_clone, include_labels, include_issues, access_token, publish_backup)
                 org_data["repositories"].append(repo.name)
             except Exception as e:
                 print(f"Error backing up the repository {repo.name}: {e}")
@@ -241,12 +246,15 @@ if __name__ == "__main__":
     
         ##  TODO Logging based on configuration 
         ##  logging.basicConfig(filename='backup.log', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
         parser.add_argument('-r', '--repo_names', type=str, nargs='*', help='List of repository names to include in the backup')
+        parser.add_argument('-l', '--labels', action='store_true', help='Including labels as part of the backup')
+        parser.add_argument('-i', '--issues', action='store_true', help='Including issues as part of the backup')
         parser.add_argument('-rc', '--repo_clone', action='store_true', help='Including whole repo clone as part of the backup')
         parser.add_argument('-pb', '--publish_backup', action='store_true', help='Publish backup as a zip file in remote storage')
         args = parser.parse_args()
@@ -257,9 +265,11 @@ if __name__ == "__main__":
         output_dir = args.output_dir or os.environ.get("GITHUB_BACKUP_DIR")
         repo_names = args.repo_names
         repo_clone = args.repo_clone
+        include_labels = args.labels
+        include_issues = args.issues
         publish_backup = args.publish_backup
         
         if org_name is None or access_token is None or output_dir is None:
             raise ValueError("Please provide organization name, access token, and output directory.")
         
-        backup_organization_resources(org_name, access_token, output_dir, repo_names, repo_clone, publish_backup)
+        backup_organization_resources(org_name, access_token, output_dir, repo_names, include_labels, include_issues, repo_clone, publish_backup)
