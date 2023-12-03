@@ -199,7 +199,7 @@ def backup_repository_resources(repo, org_folder, repo_clone, include_labels, in
     if publish_backup: 
        logging.info("TODO. Need to implement publish_backup")         
 
-def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, include_labels=False, include_issues=False, repo_clone=False, publish_backup=False):
+def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, include_labels=True, include_issues=True, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")
     g = github_auth(access_token=access_token)
 

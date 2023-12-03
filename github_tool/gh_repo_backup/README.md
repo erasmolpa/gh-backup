@@ -20,16 +20,16 @@ python backup.py -o <organization_name> -t <access_token> -d <output_directory> 
 ```
 ## Parameters
 
-| Option                | Description                                     | Required |
-|-----------------------|-------------------------------------------------|----------|
-| -o or --org_name      | GitHub organization name.                       | Yes      |
-| -t or --access_token  | GitHub access token.                            | Yes      |
-| -d or --output_dir    | Output directory for the backup.                | Yes      |
-| -r or --repo_names    | List of repository names to include in the backup. | No       |
-| -rc or --repo_clone   | Include whole repository clone as part of the backup. | No       |
-| -pb or --publish_backup| Publish backup as a zip file in remote storage. | No       |
-
-
+| Option                | Description                                     | Required | Default |
+|-----------------------|-------------------------------------------------|----------|----------|
+| -o or --org_name      | GitHub organization name.                       | Yes      | ""|
+| -t or --access_token  | GitHub access token.                            | Yes      |""|
+| -d or --output_dir    | Output directory for the backup.                | Yes      |""|
+| -r or --repo_names    | List of repository names to include in the backup. | No    |""|
+| -rc or --repo_clone   | Include whole repository clone as part of the backup. | No       |False|
+| -pb or --publish_backup| Publish backup as a zip file in remote storage. | No       |False|
+| -l or --labels         | include labels as part of the backup | No       |True       |
+| -i or --issues         | include issues as part of the backup | No       |True       |
 ## Examples 
 
 # Basic backup without repository cloning
