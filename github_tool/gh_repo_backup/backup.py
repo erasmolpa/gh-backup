@@ -223,11 +223,7 @@ def backup_repository_resources(repo, org_folder, repo_clone, include_labels, in
             print("Error: %s - %s." % (e.filename, e.strerror))
                
     if publish_backup: 
-       account_name = 'githubbackupst'
-       account_key = '+zsN8Bh9NmkUdXYJtoROW0x4/o6d0DROBrn+RfvBFMVKdBUAeKCOLHfb/GDNornBEORY8mYuIUlB+ASt2Y4SIg=='
-       container_name = 'githuberasmolpaorgct'
-       
-       container_client = get_container_client(account_name, account_key, container_name)
+       container_client = get_container_client(azure_account_name, azure_account_key, azure_container_name)
        publish_repositories_backups(container_client, repo_backup_folder)
 
     print("Files uploaded successfully.")
@@ -309,7 +305,7 @@ if __name__ == "__main__":
             raise ValueError("Please provide organization name, access token, and output directory.")
         
         if publish_backup:
-           azure_account_name = os.environ.get("AZURE_ACCOUNT_NAME")
+          azure_account_name = os.environ.get("AZURE_ACCOUNT_NAME")
            azure_account_key  = os.environ.get("AZURE_ACCOUNT_KEY")
            azure_container_name = os.environ.get("AZURE_CONTAINER_NAME")
            if azure_account_name is None or azure_account_key is None or azure_container_name is None:
