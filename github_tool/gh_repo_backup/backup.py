@@ -14,10 +14,19 @@ from github import BadCredentialsException
 from github import RateLimitExceededException 
 from github import Github 
 
+from azure.storage.blob import ContainerClient
+import os
+
+
 global org_name
 global access_token
 global output_dir 
 global remove_local_repo_dir
+
+global azure_account_name
+global azure_account_key
+global azure_container_name
+
   
 def github_auth(client_id=None, client_secret=None, access_token=None):
     try:
@@ -37,6 +46,7 @@ def github_auth(client_id=None, client_secret=None, access_token=None):
         print("Github Auth issues:", e)
 
     return None
+
 def create_folder(path):
     os.makedirs(path, exist_ok=True)
 
@@ -164,13 +174,29 @@ def rmtree(path):
     def onerror(func, path, exc_info):
         # Is the error an access error ?
         os.chmod(path, stat.S_IWUSR)
-        print('dfsffdss')
         try:
             func(path)  # Will scream if still not possible to delete.
         except Exception as ex:
             raise
     return shutil.rmtree(path, False, onerror)
-         
+
+
+def get_container_client(account_name, account_key, container_name):
+    return ContainerClient(account_name, account_key, container_name)
+
+def publish_repositories_backups(container_client, local_directory, container_path=""):
+    for root, dirs, files in os.walk(local_directory):
+        for file in files:
+            if file.endswith(".zip"):
+                local_file_path = os.path.join(root, file)
+                container_file_path = os.path.join(container_path, file)
+
+                blob_client = container_client.get_blob_client(container_file_path)
+
+                with open(local_file_path, "rb") as data:
+                    blob_client.upload_blob(data)
+
+                  
 def backup_repository_resources(repo, org_folder, repo_clone, include_labels, include_issues, access_token, publish_backup):
     #TODO Fixme . This should be a env variable instead
     remove_local_repo_dir = False
@@ -197,7 +223,16 @@ def backup_repository_resources(repo, org_folder, repo_clone, include_labels, in
             print("Error: %s - %s." % (e.filename, e.strerror))
                
     if publish_backup: 
-       logging.info("TODO. Need to implement publish_backup")         
+       account_name = 'githubbackupst'
+       account_key = '+zsN8Bh9NmkUdXYJtoROW0x4/o6d0DROBrn+RfvBFMVKdBUAeKCOLHfb/GDNornBEORY8mYuIUlB+ASt2Y4SIg=='
+       container_name = 'githuberasmolpaorgct'
+       
+       container_client = get_container_client(account_name, account_key, container_name)
+       publish_repositories_backups(container_client, repo_backup_folder)
+
+    print("Files uploaded successfully.")
+
+if __name__ == "__main__":   
 
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, include_labels=True, include_issues=True, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")
@@ -249,6 +284,7 @@ if __name__ == "__main__":
         
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
+        
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
@@ -271,5 +307,12 @@ if __name__ == "__main__":
         
         if org_name is None or access_token is None or output_dir is None:
             raise ValueError("Please provide organization name, access token, and output directory.")
+        
+        if publish_backup:
+           azure_account_name = os.environ.get("AZURE_ACCOUNT_NAME")
+           azure_account_key  = os.environ.get("AZURE_ACCOUNT_KEY")
+           azure_container_name = os.environ.get("AZURE_CONTAINER_NAME")
+           if azure_account_name is None or azure_account_key is None or azure_container_name is None:
+              raise ValueError("Please provide Azure account and container values if you are expecting to publish the backups")
         
         backup_organization_resources(org_name, access_token, output_dir, repo_names, include_labels, include_issues, repo_clone, publish_backup)
