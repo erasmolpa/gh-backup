@@ -224,10 +224,6 @@ def backup_repository_resources(repo, org_folder, repo_clone, include_labels, in
        container_client = get_container_client(azure_account_name, azure_account_key, azure_container_name)
        publish_repositories_backups(container_client, repo_backup_folder)
 
-    print("Files uploaded successfully.")
-
-if __name__ == "__main__":   
-
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, include_labels=True, include_issues=True, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")
     g = github_auth(access_token=access_token)
