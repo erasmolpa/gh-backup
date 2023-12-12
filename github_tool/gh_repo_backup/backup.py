@@ -302,6 +302,10 @@ if __name__ == "__main__":
             azure_account_name = os.environ.get("AZURE_ACCOUNT_NAME")
             azure_account_key  = os.environ.get("AZURE_ACCOUNT_KEY")
             azure_container_name = os.environ.get("AZURE_CONTAINER_NAME")
+            
+            print(f"Azure Account Name: {azure_account_name}")
+            print(f"Azure Container Name: {azure_container_name}")
+            
             if azure_account_name is None or azure_account_key is None or azure_container_name is None:
                 raise ValueError("Please provide Azure account and container values if you are expecting to publish the backups")
         
