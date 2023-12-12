@@ -15,8 +15,6 @@ from github import RateLimitExceededException
 from github import Github 
 
 from azure.storage.blob import ContainerClient
-import os
-
 
 global org_name
 global access_token
