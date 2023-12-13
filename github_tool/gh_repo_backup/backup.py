@@ -14,10 +14,17 @@ from github import BadCredentialsException
 from github import RateLimitExceededException 
 from github import Github 
 
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+
 global org_name
 global access_token
 global output_dir 
 global remove_local_repo_dir
+
+global azure_account_name
+global azure_account_key
+global azure_container_name
+
   
 def github_auth(client_id=None, client_secret=None, access_token=None):
     try:
@@ -37,6 +44,7 @@ def github_auth(client_id=None, client_secret=None, access_token=None):
         print("Github Auth issues:", e)
 
     return None
+
 def create_folder(path):
     os.makedirs(path, exist_ok=True)
 
@@ -164,13 +172,33 @@ def rmtree(path):
     def onerror(func, path, exc_info):
         # Is the error an access error ?
         os.chmod(path, stat.S_IWUSR)
-        print('dfsffdss')
         try:
             func(path)  # Will scream if still not possible to delete.
         except Exception as ex:
             raise
     return shutil.rmtree(path, False, onerror)
-         
+
+
+def get_container_client(account_name, account_key, container_name):
+
+    connection_string = f"DefaultEndpointsProtocol=https;AccountName={account_name};AccountKey={account_key};EndpointSuffix=core.windows.net"
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    container_client = blob_service_client.get_container_client(container_name)
+
+    return container_client
+
+def publish_repositories_backups(container_client, local_organization_directory):
+    
+    for repo_backup in os.listdir(local_organization_directory):
+        repo_backup_path = os.path.join(local_organization_directory, repo_backup)
+
+        if os.path.isfile(repo_backup_path) and repo_backup.endswith(".zip"):
+            blob_name = f"{repo_backup}"
+            with open(repo_backup_path, "rb") as data:
+                container_client.upload_blob(name=blob_name, data=data, overwrite=True)
+
+
+                  
 def backup_repository_resources(repo, org_folder, repo_clone, include_labels, include_issues, access_token, publish_backup):
     #TODO Fixme . This should be a env variable instead
     remove_local_repo_dir = False
@@ -197,7 +225,11 @@ def backup_repository_resources(repo, org_folder, repo_clone, include_labels, in
             print("Error: %s - %s." % (e.filename, e.strerror))
                
     if publish_backup: 
-       logging.info("TODO. Need to implement publish_backup")         
+       print(f"Azure Account Name: {azure_account_name}")
+       print(f"Azure Container Name: {azure_container_name}")
+       container_client = get_container_client(azure_account_name, azure_account_key, azure_container_name)
+    
+       publish_repositories_backups(container_client, org_folder)
 
 def backup_organization_resources(org_name, access_token, output_dir, repo_names=None, include_labels=True, include_issues=True, repo_clone=False, publish_backup=False):
     logging.info("INIT  backup_organization_resources Method")
@@ -249,6 +281,7 @@ if __name__ == "__main__":
         
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         parser = argparse.ArgumentParser(description='Backup GitHub organization resources.')
+        
         parser.add_argument('-o', '--org_name', type=str, help='GitHub organization name')
         parser.add_argument('-t', '--access_token', type=str, help='GitHub access token')
         parser.add_argument('-d', '--output_dir', type=str, help='Output directory for backup')
@@ -260,9 +293,9 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
 
-        org_name = args.org_name or os.environ.get("GITHUB_ORG")
-        access_token = args.access_token or os.environ.get("GITHUB_ACCESS_TOKEN")
-        output_dir = args.output_dir or os.environ.get("GITHUB_BACKUP_DIR")
+        org_name = args.org_name or os.getenv("GITHUB_ORG")
+        access_token = args.access_token or os.getenv("GITHUB_ACCESS_TOKEN")
+        output_dir = args.output_dir or os.getenv("GITHUB_BACKUP_DIR")
         repo_names = args.repo_names
         repo_clone = args.repo_clone
         include_labels = args.labels
@@ -271,5 +304,13 @@ if __name__ == "__main__":
         
         if org_name is None or access_token is None or output_dir is None:
             raise ValueError("Please provide organization name, access token, and output directory.")
+        
+        if publish_backup:
+            azure_account_name = os.getenv("AZURE_ACCOUNT_NAME")
+            azure_account_key  = os.getenv("AZURE_ACCOUNT_KEY")
+            azure_container_name = os.getenv("AZURE_CONTAINER_NAME")
+            
+            if azure_account_name is None or azure_account_key is None or azure_container_name is None:
+                raise ValueError("Please provide Azure account and container values if you are expecting to publish the backups")
         
         backup_organization_resources(org_name, access_token, output_dir, repo_names, include_labels, include_issues, repo_clone, publish_backup)
